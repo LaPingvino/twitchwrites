@@ -11,7 +11,7 @@ import (
 	irc "github.com/fluffle/goirc/client"
 )
 
-var regex = "^[^ ]$"
+var regex = "^[^ ]+$"
 
 func main() {
 	if len(os.Args) < 4 {
@@ -43,7 +43,7 @@ func main() {
 		fmt.Printf("Connection error: %s\n", err.Error())
 	}
 
-	var timer = time.Tick(15 * time.Minute)
+	var timer = time.Tick(time.Minute)
 	var measure map[string]int
 
 	c.HandleFunc(irc.PRIVMSG,
@@ -52,26 +52,29 @@ func main() {
 				if measure == nil {
 					measure = make(map[string]int)
 				}
-				select {
-				case <-timer:
-					var highest int
-					var chosen string
-					for k, v := range measure {
-						if v < highest {
-							chosen = k
-							highest = v
-						}
-					}
-					space := " "
-					if !unicode.IsLetter([]rune(chosen)[0]) {
-						space = ""
-					}
-					fmt.Print(space + chosen)
-				default:
-					measure[line.Text()]++
-				}
+				measure[line.Text()]++
 			}
 		})
+	for range timer {
+		var highest int
+		chosen := " "
+		for k, v := range measure {
+			if v > highest {
+				chosen = k
+				highest = v
+			}
+		}
+		space := " "
+		if chosen == " " {
+			fmt.Print("_")
+			continue
+		}
+		if !unicode.IsLetter([]rune(chosen)[0]) {
+			space = ""
+		}
+		fmt.Print(space + chosen)
+		measure = nil
+	}
 
 	// Wait for disconnect
 	<-quit
