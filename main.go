@@ -66,7 +66,6 @@ func main() {
 		}
 		space := " "
 		if chosen == " " {
-			fmt.Print("_")
 			continue
 		}
 		if !unicode.IsLetter([]rune(chosen)[0]) {
